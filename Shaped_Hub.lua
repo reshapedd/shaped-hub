@@ -34,29 +34,22 @@ local Options = Fluent.Options
 do
 	--Needed Variables--
 	local players = game.Players:GetPlayers()
-	local player = game.workspace.reshapedd
-	local humanoid = player:WaitForChild("Humanoid")
+	local player = game.Players:FindFirstChild("reshapedd")
+	local humanoid = player.Character:FindFirstChild("Humanoid")
 	local playerNames = {"reshaped"}
 
-	for _, player in ipairs(players) do
-    	table.insert(playerNames, player.Name)
-		print(playerNames)
-	end
+ 	local function updatePlayerNames()
+        playerNames = {}
+        for _, player in ipairs(game.Players:GetPlayers()) do
+            table.insert(playerNames, player.Name)
+        end
+    end
 
-	game.Players.PlayerAdded:Connect(function(player)
-		for _, player in ipairs(players) do
-			table.insert(playerNames, player.Name)
-		end
-	end)
+    updatePlayerNames()
 
-	game.Players.PlayerRemoving:Connect(function(player)
-    	for _, name in ipairs(playersNames) do
-			if name == player.Name then
-    			table.remove(playerNames, player.name)
-				break
-			end
-		end
-	end)
+    game.Players.PlayerAdded:Connect(updatePlayerNames)
+	game.Players.PlayerRemoving:Connect(updatePlayerNames)
+
 
 
 
@@ -79,19 +72,20 @@ do
                         Title = "Confirm",
                         Callback = function()
                             local lastPosition = nil
-							player.humanoid.Health = 0
-							LocalPlayer.CharacterAdded:Connect(function(character)
-								if character.Parent == "reshapedd" then
-									local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+							game.workspace.reshapedd.Humanoid.Health = 0
+							humanoid.Died:Connect(function()
+								if player.Character.Torso and player.Character.Torso.Parent then
+									lastPosition = player.Character.Torso.CFrame
+								end
+							end)
+
+							player.CharacterAdded:Connect(function(character)
+								if character == player.Character then
+									wait(0.1)
+									local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
 									if lastPosition then
 										humanoidRootPart.CFrame = lastPosition
 									end
-									
-									humanoid.Died:Connect(function()
-										if humanoidRootPart then
-											lastPosition = humanoidRootPart.CFrame
-										end
-									end)
 								end
 							end)
 						end
@@ -184,7 +178,7 @@ do
 		local Players = game:GetService("Players")
 		local esp = Instance.new("Highlight")
 		esp.Name = "ESP"
-		esp.FillColor = Color3.fromRGB(255, 0, 0)
+		esp.FillColor = ESPColour
 
 		local function applyESP(character)
 			local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
@@ -193,7 +187,6 @@ do
 				espClone.Adornee = character
 				espClone.Parent = humanoidRootPart
 				espClone.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-				print("ESP applied to", character.Name)
 			end
 		end
 
@@ -261,8 +254,14 @@ do
         Default = Color3.fromRGB(255, 0, 0)
     })
 
-    ESPColourpicker:OnChanged(function()
-		ESPColour = ESPColourpicker.Value
+    ESPColourpicker:OnChanged(function(newColor)
+		ESPColour = newColor
+		--ESPColour = ESPColourpicker.Value
+		for _, descendant in ipairs(game.Workspace:GetDescendants()) do
+        	if descendant:IsA("Highlight") and descendant.Name == "ESP" then
+            	descendant.FillColor = ESPColour
+       		end
+    	end
     end)
 
 end
