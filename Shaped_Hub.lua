@@ -79,6 +79,7 @@ do
                         Title = "Confirm",
                         Callback = function()
                             local lastPosition = nil
+							player.humanoid.Health = 0
 							LocalPlayer.CharacterAdded:Connect(function(character)
 								if character.Parent == "reshapedd" then
 									local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
