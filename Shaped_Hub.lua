@@ -1,4 +1,4 @@
-﻿
+
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
@@ -33,9 +33,30 @@ local Options = Fluent.Options
 
 do
 	--Needed Variables--
+	local players = game.Players:GetPlayers()
 	local player = game.workspace.reshapedd
 	local humanoid = player:WaitForChild("Humanoid")
-	local players = game.Players:GetPlayers()
+	local playerNames = {"reshaped"}
+
+	for _, player in ipairs(players) do
+    	table.insert(playerNames, player.Name)
+		print(playerNames)
+	end
+
+	game.Players.PlayerAdded:Connect(function(player)
+		for _, player in ipairs(players) do
+			table.insert(playerNames, player.Name)
+		end
+	end)
+
+	game.Players.PlayerRemoving:Connect(function(player)
+    	for _, name in ipairs(playersNames) do
+			if name == player.Name then
+    			table.remove(playerNames, player.name)
+				break
+			end
+		end
+	end)
 
 
 
@@ -47,23 +68,37 @@ do
 
 
     Tabs.Main:AddButton({
-        Title = "Button",
-        Description = "Very important button",
+        Title = "Respawn Character",
+        Description = "Respawns the Player",
         Callback = function()
             Window:Dialog({
-                Title = "Title",
-                Content = "This is a dialog",
+                Title = "Are you sure?",
+                Content = "This will respawn your character and bring you back to this position.",
                 Buttons = {
                     {
                         Title = "Confirm",
                         Callback = function()
-                            print("Confirmed the dialog.")
-                        end
-                    },
+                            local lastPosition = nil
+
+							LocalPlayer.CharacterAdded:Connect(function(character)
+								if character.Parent == "reshapedd" then
+									local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+									if lastPosition then
+										humanoidRootPart.CFrame = lastPosition
+									end
+									
+									humanoid.Died:Connect(function()
+										if humanoidRootPart then
+											lastPosition = humanoidRootPart.CFrame
+										end
+									end)
+								end
+							end)
+						end
+						},
                     {
                         Title = "Cancel",
                         Callback = function()
-                            print("Cancelled the dialog.")
                         end
                     }
                 }
@@ -71,15 +106,6 @@ do
         end
     })
 
-
-
-    local Toggle = Tabs.Main:AddToggle("MyToggle", {Title = "Fly", Default = false })
-
-    Toggle:OnChanged(function()
-        print("Fly Toggle changed:", Options.MyToggle.Value)
-    end)
-
-    Options.MyToggle:SetValue(false)
 
 
     
@@ -90,9 +116,6 @@ do
         Min = 0,
         Max = 250,
         Rounding = 0,
-        Callback = function(Value)
-            print("Slider was changed:", Value)
-        end
     })
 
     WalkspeedSlider:OnChanged(function(Value)
@@ -118,127 +141,21 @@ do
 
 
 
-    local Dropdown = Tabs.Main:AddDropdown("Dropdown", {
-        Title = "Dropdown",
-        Values = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen"},
+    local TPDropdown = Tabs.Main:AddDropdown("PlayerTP", {
+        Title = "Teleport to Player",
+        Values = playerNames,
         Multi = false,
-        Default = 1,
     })
 
-    Dropdown:SetValue("four")
+	TPDropdown:SetValue("reshapedd")
 
-    Dropdown:OnChanged(function(Value)
-        print("Dropdown changed:", Value)
-    end)
-
-
-    
-    local MultiDropdown = Tabs.Main:AddDropdown("MultiDropdown", {
-        Title = "Dropdown",
-        Description = "You can select multiple values.",
-        Values = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen"},
-        Multi = true,
-        Default = {"seven", "twelve"},
-    })
-
-    MultiDropdown:SetValue({
-        three = true,
-        five = true,
-        seven = false
-    })
-
-    MultiDropdown:OnChanged(function(Value)
-        local Values = {}
-        for Value, State in next, Value do
-            table.insert(Values, Value)
-        end
-        print("Mutlidropdown changed:", table.concat(Values, ", "))
-    end)
-
-
-
-    local Colorpicker = Tabs.Main:AddColorpicker("Colorpicker", {
-        Title = "Colorpicker",
-        Default = Color3.fromRGB(96, 205, 255)
-    })
-
-    Colorpicker:OnChanged(function()
-        print("Colorpicker changed:", Colorpicker.Value)
-    end)
-    
-    Colorpicker:SetValueRGB(Color3.fromRGB(0, 255, 140))
-
-
-
-    local Keybind = Tabs.Main:AddKeybind("Keybind", {
-        Title = "KeyBind",
-        Mode = "Toggle", -- Always, Toggle, Hold
-        Default = "LeftControl", -- String as the name of the keybind (MB1, MB2 for mouse buttons)
-
-        -- Occurs when the keybind is clicked, Value is `true`/`false`
-        Callback = function(Value)
-            print("Keybind clicked!", Value)
-        end,
-
-        -- Occurs when the keybind itself is changed, `New` is a KeyCode Enum OR a UserInputType Enum
-        ChangedCallback = function(New)
-            print("Keybind changed!", New)
-        end
-    })
-
-    -- OnClick is only fired when you press the keybind and the mode is Toggle
-    -- Otherwise, you will have to use Keybind:GetState()
-    Keybind:OnClick(function()
-        print("Keybind clicked:", Keybind:GetState())
-    end)
-
-    Keybind:OnChanged(function()
-        print("Keybind changed:", Keybind.Value)
-    end)
-
-    task.spawn(function()
-        while true do
-            wait(1)
-
-            -- example for checking if a keybind is being pressed
-            local state = Keybind:GetState()
-            if state then
-                print("Keybind is being held down")
-            end
-
-            if Fluent.Unloaded then break end
-        end
-    end)
-
-    Keybind:SetValue("MB2", "Toggle") -- Sets keybind to MB2, mode to Hold
-
-
-    local Input = Tabs.Main:AddInput("Input", {
-        Title = "TP to player",
-        Default = "",
-        Placeholder = "(Case Sensitive)",
-        Numeric = false, -- Only allows numbers
-        Finished = true, -- Only calls callback when you press enter
-        Callback = function(Value)
-            print("Input changed:", Value)
-        end
-    })
-
-    Input:OnChanged(function()
+    TPDropdown:OnChanged(function(Value)
         local rootPart = game.workspace.reshapedd.HumanoidRootPart
-		local targetname = Input.Value
+		local targetname = Value
 		local targetplayer = game.workspace:FindFirstChild(targetname)
 		if targetplayer and targetplayer:FindFirstChild("HumanoidRootPart") then
     		local tpRootPart = targetplayer.HumanoidRootPart
     		rootPart.CFrame = tpRootPart.CFrame
-		
-		elseif targetplayer and not targetplayer:FindFirstChild("HumanoidRootPart") then
-			Fluent:Notify({
-        		Title = "Failed to find Player",
-        		Content = "Check you typed in the name correctly",
-        		SubContent = "Ignore this message if you get it on startup, this is just a bug",
-        		Duration = 3 -- Set to nil to make the notification not disappear
-    		})
 		end
     end)
 end
@@ -253,6 +170,7 @@ end
 do
 	--Variables--
 	local RunService = game:GetService("RunService")
+	local ESPColour = Color3.fromRGB(255, 0, 0)
 
 	Tabs.ESP:AddParagraph({
         Title = "ESP",
@@ -266,6 +184,7 @@ do
 		local Players = game:GetService("Players")
 		local esp = Instance.new("Highlight")
 		esp.Name = "ESP"
+		esp.FillColor = Color3.fromRGB(255, 0, 0)
 
 		local function applyESP(character)
 			local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
@@ -274,7 +193,6 @@ do
 				espClone.Adornee = character
 				espClone.Parent = humanoidRootPart
 				espClone.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-				espClone.FillColor = ESPColour
 				print("ESP applied to", character.Name)
 			end
 		end
@@ -310,25 +228,25 @@ do
 			for _, descendant in ipairs(game.workspace:GetDescendants()) do
 				if descendant:IsA("Highlight") then
 					descendant:Destroy()
+					ESPColour = Color3.fromRGB(255,0,0)
 				end
 			end
 		end
 
-		local function refreshESPColors()
+		local function refreshESPColours()
 			for _, player in ipairs(Players:GetPlayers()) do
-				if player.Character then
-					for _, highlight in ipairs(player.Character:GetDescendants()) do
-						if highlight:IsA("Highlight") and highlight.Name == "ESP" then
-							highlight.FillColor = ESPColour
-						end
+				for _, highlight in ipairs(player:GetDescendants()) do
+					if highlight:IsA("Highlight") and highlight.Name == "ESP" then
+						highlight.FillColor = Color3.fromRGB(ESPColour)
 					end
 				end
 			end
 		end
 
 		RunService.Heartbeat:Connect(function()
-    		refreshESPColors()
+			refreshESPColours()
 		end)
+
     end)
 
 
@@ -397,6 +315,7 @@ Fluent:Notify({
     Content = "Thank you for using shaped hub",
     Duration = 8
 })
+
 
 -- You can use the SaveManager:LoadAutoloadConfig() to load a config
 -- which has been marked to be one that auto loads!
