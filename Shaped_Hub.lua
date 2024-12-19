@@ -35,8 +35,9 @@ do
 	--Needed Variables--
 	local players = game.Players:GetPlayers()
 	local player = game.Players.LocalPlayer
+	local playerName = player.Name
 	local humanoid = player.Character:FindFirstChild("Humanoid")
-	local playerNames = {player}
+	local playerNames = {playerName}
 
  	local function updatePlayerNames()
         playerNames = {}
@@ -139,9 +140,9 @@ do
         Title = "Teleport to Player",
         Values = playerNames,
         Multi = false,
+		Default = playerName,
     })
 
-	TPDropdown:SetValue(player)
 
     TPDropdown:OnChanged(function(Value)
         local rootPart = player.Character.HumanoidRootPart
