@@ -34,9 +34,9 @@ local Options = Fluent.Options
 do
 	--Needed Variables--
 	local players = game.Players:GetPlayers()
-	local player = game.Players:FindFirstChild("reshapedd")
+	local player = game.Players.LocalPlayer
 	local humanoid = player.Character:FindFirstChild("Humanoid")
-	local playerNames = {"reshaped"}
+	local playerNames = {player}
 
  	local function updatePlayerNames()
         playerNames = {}
@@ -72,7 +72,7 @@ do
                         Title = "Confirm",
                         Callback = function()
                             local lastPosition = nil
-							game.workspace.reshapedd.Humanoid.Health = 0
+							humanoid.Health = 0
 							humanoid.Died:Connect(function()
 								if player.Character.Torso and player.Character.Torso.Parent then
 									lastPosition = player.Character.Torso.CFrame
@@ -141,10 +141,10 @@ do
         Multi = false,
     })
 
-	TPDropdown:SetValue("reshapedd")
+	TPDropdown:SetValue(player)
 
     TPDropdown:OnChanged(function(Value)
-        local rootPart = game.workspace.reshapedd.HumanoidRootPart
+        local rootPart = player.Character.HumanoidRootPart
 		local targetname = Value
 		local targetplayer = game.workspace:FindFirstChild(targetname)
 		if targetplayer and targetplayer:FindFirstChild("HumanoidRootPart") then
