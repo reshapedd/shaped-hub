@@ -79,6 +79,7 @@ do
 							humanoid.Died:Connect(function()
 								if player.Character.HumanoidRootPart and player.Character.HumanoidRootPart.Parent then
 									lastPosition = player.Character.HumanoidRootPart.CFrame
+
 								end
 							end)
 
@@ -116,6 +117,7 @@ do
     })
 
     WalkspeedSlider:OnChanged(function(Value)
+        humanoid = player.Character:FindFirstChild("Humanoid")
         humanoid.WalkSpeed = Value
     end)
 
@@ -131,6 +133,7 @@ do
     })
 
     JumpowerSlider:OnChanged(function(Value)
+        local humanoid = player.Character:FindFirstChild("Humanoid")
         humanoid.JumpPower = Value
     end)
 
