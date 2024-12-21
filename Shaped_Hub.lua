@@ -4,12 +4,11 @@ local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/d
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
 --Global Variables i cant be bothered to place anywhere else--
-local ESPColour = Color3.fromRGB(255, 0, 0)
 
 local Window = Fluent:CreateWindow({
     Title = "Shaped Hub",
     SubTitle = " by reshapedd",
-    TabWidth = 100,
+    TabWidth = 120,
     Size = UDim2.fromOffset(580, 460),
     Acrylic = true,
     Theme = "Aqua",
@@ -20,6 +19,8 @@ local Window = Fluent:CreateWindow({
 local Tabs = {
     Main = Window:AddTab({ Title = "Player", Icon = "user" }),
 	ESP = Window:AddTab({ Title = "ESP", Icon = "target"}),
+    Game = Window:AddTab({ Title = "Game", Icon = "gamepad-2" }),
+    Scripts = Window:AddTab({ Title = "Scripts", Icon = "folder-open" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
@@ -33,7 +34,6 @@ local Options = Fluent.Options
 
 do
 	--Needed Variables--
-	local players = game.Players:GetPlayers()
 	local player = game.Players.LocalPlayer
 	local playerName = player.Name
 	local humanoid = player.Character:FindFirstChild("Humanoid")
@@ -42,7 +42,9 @@ do
  	local function updatePlayerNames()
         playerNames = {}
         for _, player in ipairs(game.Players:GetPlayers()) do
-            table.insert(playerNames, player.Name)
+            if player.Name ~= playerName then
+                table.insert(playerNames, player.Name)
+            end
         end
     end
 
@@ -75,8 +77,8 @@ do
                             local lastPosition = nil
 							humanoid.Health = 0
 							humanoid.Died:Connect(function()
-								if player.Character.Torso and player.Character.Torso.Parent then
-									lastPosition = player.Character.Torso.CFrame
+								if player.Character.HumanoidRootPart and player.Character.HumanoidRootPart.Parent then
+									lastPosition = player.Character.HumanoidRootPart.CFrame
 								end
 							end)
 
@@ -166,6 +168,8 @@ do
 	--Variables--
 	local RunService = game:GetService("RunService")
 	local ESPColour = Color3.fromRGB(255, 0, 0)
+    local localplayer = game.Players.LocalPlayer
+	local playerName = localplayer.Name
 
 	Tabs.ESP:AddParagraph({
         Title = "ESP",
@@ -193,24 +197,32 @@ do
 
 		local function onCharacterAdded(player)
     		if player.Character then
-        		applyESP(player.Character)
+                if (player.Name) ~= string.lower(playerName) then
+                    applyESP(player.Character)
+                end
     		end
    			player.CharacterAdded:Connect(function(character)
-        		applyESP(character)
+                if string.lower(player.Name) ~= string.lower(playerName) then
+                    applyESP(character)
+                end
     		end)
 		end
 
 		for _, player in ipairs(Players:GetPlayers()) do
-    		onCharacterAdded(player)
+            if string.lower(player.Name) ~= string.lower(playerName) then
+                onCharacterAdded(player)
+            end
 		end
 
 		Players.PlayerAdded:Connect(function(player)
-    		onCharacterAdded(player)
+            if string.lower(player.Name) ~= string.lower(playerName) then
+                onCharacterAdded(player)
+            end
 		end)
 
 		while ESPToggle.Value == true do
 			for _, player in ipairs(Players:GetPlayers()) do
-        		if player.Character then
+        		if player.Character and string.lower(player.Name) ~= string.lower(playerName) then
             		applyESP(player.Character)
         		end
     		end
@@ -222,7 +234,6 @@ do
 			for _, descendant in ipairs(game.workspace:GetDescendants()) do
 				if descendant:IsA("Highlight") then
 					descendant:Destroy()
-					ESPColour = Color3.fromRGB(255,0,0)
 				end
 			end
 		end
